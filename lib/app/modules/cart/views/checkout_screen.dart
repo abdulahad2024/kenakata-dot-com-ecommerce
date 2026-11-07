@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-
 import '../controllers/cart_controller.dart';
 import '../../../theme/app_colors.dart';
+
 
 class CheckoutScreen extends GetView<CartController> {
   const CheckoutScreen({super.key});
@@ -103,7 +103,82 @@ class CheckoutScreen extends GetView<CartController> {
 
                     const SizedBox(height: 24),
 
-                    // 2. Contact Phone Number Section
+                    // 2. Delivery Address Section with Quick Edit & Change Options
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'ডেলিভারি ঠিকানা 📍',
+                          style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                        ),
+                        GestureDetector(
+                          onTap: () => _showEditAddressModal(context),
+                          child: const Text(
+                            'পরিবর্তন করুন',
+                            style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 14),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(color: Colors.black.withAlpha(10), blurRadius: 8, offset: const Offset(0, 2)),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withAlpha(20),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: const Row(
+                                  children: [
+                                    Icon(Icons.home_outlined, size: 14, color: AppColors.primary),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      'ডিফল্ট ঠিকানা',
+                                      style: TextStyle(color: AppColors.primary, fontSize: 11, fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Spacer(),
+                              IconButton(
+                                icon: const Icon(Icons.edit_outlined, size: 20, color: AppColors.primary),
+                                onPressed: () => _showEditAddressModal(context),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          TextField(
+                            controller: controller.addressController,
+                            maxLines: 2,
+                            style: const TextStyle(fontSize: 14, color: AppColors.textPrimary, height: 1.4),
+                            decoration: const InputDecoration(
+                              hintText: 'আপনার বিস্তারিত ঠিকানা লিখুন...',
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // 3. Contact Phone Number Section
                     const Text(
                       'যোগাযোগের ফোন নম্বর 📞',
                       style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
@@ -124,35 +199,6 @@ class CheckoutScreen extends GetView<CartController> {
                         decoration: const InputDecoration(
                           hintText: 'আপনার ১১ ডিজিটের ফোন নম্বর লিখুন...',
                           prefixIcon: Icon(Icons.phone_outlined, color: AppColors.primary),
-                          border: InputBorder.none,
-                          enabledBorder: InputBorder.none,
-                          focusedBorder: InputBorder.none,
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // 3. Delivery Address Section
-                    const Text(
-                      'ডেলিভারি ঠিকানা 📍',
-                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-                    ),
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(color: Colors.black.withAlpha(10), blurRadius: 8, offset: const Offset(0, 2)),
-                        ],
-                      ),
-                      child: TextField(
-                        controller: controller.addressController,
-                        maxLines: 3,
-                        decoration: const InputDecoration(
-                          hintText: 'আপনার বিস্তারিত রোড নং, বাড়ি নং, এলাকা, জেলা লিখুন...',
                           border: InputBorder.none,
                           enabledBorder: InputBorder.none,
                           focusedBorder: InputBorder.none,
@@ -275,6 +321,58 @@ class CheckoutScreen extends GetView<CartController> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showEditAddressModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 20,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('ডেলিভারি ঠিকানা হালনাগাদ', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  IconButton(onPressed: () => Get.back(), icon: const Icon(Icons.close)),
+                ],
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: controller.addressController,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  hintText: 'বাসা/ফ্ল্যাট নং, রোড নাম, এলাকা, জেলা বিস্তারিত লিখুন...',
+                ),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Get.back();
+                    Get.snackbar('ঠিকানা নিশ্চিত হয়েছে', 'অর্ডারের ডেলিভারি ঠিকানা আপডেট করা হয়েছে।',
+                        snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.indigo, colorText: Colors.white);
+                  },
+                  child: const Text('ঠিকানা নিশ্চিত করুন'),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

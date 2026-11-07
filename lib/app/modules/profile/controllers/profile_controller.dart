@@ -4,6 +4,7 @@ import '../../../data/providers/api_client.dart';
 import '../../../data/services/storage_service.dart';
 import '../../../data/models/user_model.dart';
 import '../../../../core/constants/api_endpoints.dart';
+import '../../cart/controllers/cart_controller.dart';
 import '../../../routes/app_routes.dart';
 
 class ProfileController extends GetxController {
@@ -45,10 +46,16 @@ class ProfileController extends GetxController {
         nameController.text = user.value?.name ?? '';
         phoneController.text = user.value?.phone ?? '';
         addressController.text = user.value?.deliveryAddress ?? '';
+
+        // Sync with CartController address if registered
+        if (Get.isRegistered<CartController>()) {
+          Get.find<CartController>().addressController.text = addressController.text;
+        }
       }
     } catch (_) {
       if (_storage.user != null) {
         user.value = UserModel.fromJson(_storage.user!);
+        addressController.text = user.value?.deliveryAddress ?? '';
       }
     } finally {
       isLoading.value = false;
@@ -65,33 +72,48 @@ class ProfileController extends GetxController {
 
       Get.back();
       fetchProfile();
-      Get.snackbar('Success', 'Profile updated successfully!',
+      Get.snackbar('সফল', 'প্রোফাইল সফলভাবে আপডেট করা হয়েছে!',
           snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.green, colorText: Colors.white);
     } catch (e) {
-      Get.snackbar('Error', e.toString(), snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar('এরর', e.toString(), snackPosition: SnackPosition.BOTTOM);
     } finally {
       isLoading.value = false;
     }
   }
 
   Future<void> updateDeliveryAddress() async {
-    if (addressController.text.trim().isEmpty) {
-      Get.snackbar('Validation', 'Address cannot be empty.', snackPosition: SnackPosition.BOTTOM);
+    final newAddress = addressController.text.trim();
+    if (newAddress.isEmpty) {
+      Get.snackbar('ভ্যালিডেশন', 'অনুগ্রহ করে ডেলিভারি ঠিকানা লিখুন।', snackPosition: SnackPosition.BOTTOM);
       return;
     }
 
     try {
       isLoading.value = true;
       await _apiClient.post(ApiUrl.updateDeliveryAddress, {
-        'delivery_address': addressController.text.trim(),
+        'delivery_address': newAddress,
+        'address': newAddress,
       });
+
+      // Update local storage user
+      if (_storage.user != null) {
+        final updatedUser = Map<String, dynamic>.from(_storage.user!);
+        updatedUser['delivery_address'] = newAddress;
+        updatedUser['address'] = newAddress;
+        await _storage.saveUser(updatedUser);
+      }
+
+      // Sync CartController address text field
+      if (Get.isRegistered<CartController>()) {
+        Get.find<CartController>().addressController.text = newAddress;
+      }
 
       Get.back();
       fetchProfile();
-      Get.snackbar('Success', 'Delivery address updated!',
+      Get.snackbar('সফল', 'ডেলিভারি ঠিকানা সফলভাবে আপডেট হয়েছে!',
           snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.green, colorText: Colors.white);
     } catch (e) {
-      Get.snackbar('Error', e.toString(), snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar('এরর', e.toString(), snackPosition: SnackPosition.BOTTOM);
     } finally {
       isLoading.value = false;
     }
@@ -103,10 +125,10 @@ class ProfileController extends GetxController {
       await _apiClient.post(ApiUrl.deleteAccount, {});
       await _storage.logout();
       Get.offAllNamed(AppRoutes.login);
-      Get.snackbar('Account Deleted', 'Your account has been deleted.',
+      Get.snackbar('একাউন্ট মোছা হয়েছে', 'আপনার একাউন্টটি মুছে ফেলা হয়েছে।',
           snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
     } catch (e) {
-      Get.snackbar('Error', e.toString(), snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar('এরর', e.toString(), snackPosition: SnackPosition.BOTTOM);
     } finally {
       isLoading.value = false;
     }
